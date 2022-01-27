@@ -13,7 +13,7 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService.Base
             where T : unmanaged;
 
         ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems, 
-                                                                Allocator allocator = Allocator.Temp) 
+                                                                Allocator allocator = Allocator.TempJob) 
             where T : unmanaged;
     }
 }
