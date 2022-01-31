@@ -37,7 +37,7 @@ class ExampleSystem : BaseGameJobSystem<TJob>
       .GetReadOnlyOperations<Component2>(systems); 
 
     job.Component3Operations = OperationsService
-      .GetReadOnlyOperations<Component3>(systems);
+      .GetReadWriteOperations<Component3>(systems);
   }
 }
 ```
