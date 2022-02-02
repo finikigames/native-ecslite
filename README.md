@@ -66,7 +66,7 @@ public struct SummAndWriteJob : IJobParallelFor
   public ReadOnlyNativeWrappedData<int> Filter;
 
   public ReadOnlyNativeEntityOperations<Component1> Component1Operations;
-  public ReadOnlyNativeEntityOperations<Component2> Component2Operations;
+  public ReadWriteNativeEntityOperations<Component2> Component2Operations;
   public ReadWriteNativeEntityOperations<Component3> Component3Operations;
 
   public void Execute(int index) 
@@ -80,7 +80,6 @@ public struct SummAndWriteJob : IJobParallelFor
 
     component3Value = component1Value + component2Value;
 
-    Component1Operations.Del(entity);
     Component2Operations.Del(entity);
   }
 }
@@ -91,3 +90,17 @@ You also can use this mechanism outside ecs system, for example in some kind of 
 ## Installation
 
 For now to use this extension you need to clone fork of the [ecslite](https://github.com/odingamesdev/ecslite) framework. In future we have plans to merge our project with main Leopotam repo.
+
+## Know problems
+1. No AutoReset
+2. No internal arrays resizing. Be careful or specify pool arrays size in EcsWorld.Config
+3. No way to create entity inside Job
+4. Not true entity deletion in Job
+
+## Future plans
+
+1. Wrapper for Filter access
+2. Entity creation in Job
+3. True entity deletion in Job
+4. Find ways to resize internal managed arrays in Job that has been wrapped to NativeArray
+5. Add AutoReset 
