@@ -13,12 +13,12 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 {
     public class NativeOperationsService : INativeOperationsService
     {
-        private readonly Dictionary<Type, INativeOperationsWrapperTypeless> _operations = new(20);
+        private readonly Dictionary<Type, INativeOperationsWrapperTypeless> _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
 
-        private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations = new(20);
+        private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
 
-        private readonly List<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers = new(20);
-        private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers = new(20);
+        private readonly List<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers = new List<INativeReadWriteOperationsWrapper>(20);
+        private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
 
         public void ApplyOperations(EcsSystems systems)
         {
