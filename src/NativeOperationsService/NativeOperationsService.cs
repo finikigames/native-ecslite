@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.Extensions;
 using OdinGames.EcsLite.Native.NativeOperations;
+using OdinGames.EcsLite.Native.NativeOperations.FilterWrapper;
 using OdinGames.EcsLite.Native.NativeOperationsService.Base;
 using OdinGames.EcsLite.Native.NativeOperationsWrapper;
 using OdinGames.EcsLite.Native.NativeOperationsWrapper.Base;
@@ -13,13 +14,25 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 {
     public class NativeOperationsService : INativeOperationsService
     {
-        private readonly Dictionary<Type, INativeOperationsWrapperTypeless> _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
+        private readonly Dictionary<Type, INativeOperationsWrapperTypeless> _operations;
 
-        private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
+        private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations;
 
-        private readonly List<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers = new List<INativeReadWriteOperationsWrapper>(20);
-        private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
+        private readonly List<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers;
+        private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers;
+        private readonly List<NativeFilterWrapper> _nativeFilters;
 
+        public NativeOperationsService()
+        {
+            _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
+            _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
+            _usedReadWriteOperationsWrappers = new List<INativeReadWriteOperationsWrapper>(20);
+#if UNITY_EDITOR
+            _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
+            _nativeFilters = new List<NativeFilterWrapper>();
+#endif
+        }
+        
         public void ApplyOperations(EcsSystems systems)
         {
             foreach (var operations in _usedReadWriteOperationsWrappers)
@@ -36,15 +49,34 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 operations.Dispose();
             }
 
+#if UNITY_EDITOR
             foreach (var operationsPair in _usedReadOnlyOperationsWrappers)
             {
                 operationsPair.Dispose();
             }
+
+            foreach (var filter in _nativeFilters)
+            {
+                filter.Dispose();
+            }
+            _usedReadOnlyOperationsWrappers.Clear();
+            _nativeFilters.Clear();
+#endif
             
             _usedReadWriteOperationsWrappers.Clear();
-            _usedReadOnlyOperationsWrappers.Clear();
         }
 
+        public NativeFilterWrapper GetFilterWrapper(EcsFilter filter)
+        {
+            NativeFilterWrapper wrapper = default; ;
+            
+            wrapper.Init(filter);
+            
+            _nativeFilters.Add(wrapper);
+            
+            return wrapper;
+        }
+        
         public ReadOnlyNativeEntityOperations<T> GetReadOnlyOperations<T>(EcsSystems systems)
             where T : unmanaged
         {
