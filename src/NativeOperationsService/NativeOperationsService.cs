@@ -111,7 +111,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
         }
 
         public ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems, 
-            Allocator operationAllocator = Allocator.TempJob) 
+            Allocator operationAllocator = Allocator.TempJob,
+            int internalBuffersCapacity = 30) 
             where T : unmanaged
         {
             var typeofT = typeof(T);
@@ -157,7 +158,9 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 nativeEntities, 
                 ref recycledItemsCount, 
                 ref denseItemsCount, 
-                poolId);
+                poolId,
+                operationAllocator,
+                internalBuffersCapacity);
 
             return wrapper.Operations;
         }
