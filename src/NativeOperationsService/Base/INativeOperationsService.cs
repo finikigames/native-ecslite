@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.NativeOperations;
 using Unity.Collections;
@@ -13,7 +13,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService.Base
             where T : unmanaged;
 
         ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems, 
-                                                                Allocator allocator = Allocator.TempJob) 
+                                                                Allocator allocator = Allocator.TempJob,
+                                                                int internalBuffersCapacity = 30) 
             where T : unmanaged;
     }
 }
