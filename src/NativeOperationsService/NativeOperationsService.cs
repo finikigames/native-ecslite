@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.Extensions;
@@ -22,15 +22,14 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
         private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers;
         private readonly List<NativeFilterWrapper> _nativeFilters;
 
+        [UnityEngine.Scripting.Preserve]
         public NativeOperationsService()
         {
             _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
             _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
             _usedReadWriteOperationsWrappers = new List<INativeReadWriteOperationsWrapper>(20);
-#if UNITY_EDITOR
             _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
             _nativeFilters = new List<NativeFilterWrapper>();
-#endif
         }
         
         public void ApplyOperations(EcsSystems systems)
@@ -72,7 +71,9 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             
             wrapper.Init(filter);
             
+#if UNITY_EDITOR
             _nativeFilters.Add(wrapper);
+#endif
             
             return wrapper;
         }
@@ -145,8 +146,10 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 wrapper = new NativeReadWriteOperationsWrapper<T>();
                 _readWriteOperations.Add(typeofT, wrapper);
             }
-            
+             
+#if UNITY_EDITOR
             _usedReadWriteOperationsWrappers.Add(wrapper);
+#endif
             
             wrapper.Init(nativeSparse,
                 nativeDense, 
