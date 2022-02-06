@@ -28,7 +28,10 @@ class ExampleSystem : BaseGameJobSystem<TJob>
   // Here you should set entities pool
   public override void SetData(EcsSystems systems, ref TJob job) 
   {
-    job.Filter = GetFilter(systems.GetWorld()).GetRawEntities().WrapToNative().ToReadOnly();
+    var world = systems.GetWorld();
+    var filter = GetFilter()
+    
+    job.Filter = GetFilterWrapper(filter);
 
     job.Component1Operations = OperationsService
       .GetReadOnlyOperations<Component1>(systems);
@@ -63,7 +66,7 @@ Job example:
 [BurstCompile]
 public struct SummAndWriteJob : IJobParallelFor
 {
-  public ReadOnlyNativeWrappedData<int> Filter;
+  public NativeFilterWrapper Filter;
 
   public ReadOnlyNativeEntityOperations<Component1> Component1Operations;
   public ReadWriteNativeEntityOperations<Component2> Component2Operations;
@@ -71,7 +74,7 @@ public struct SummAndWriteJob : IJobParallelFor
 
   public void Execute(int index) 
   {
-    var entity = Filter.Array[index];
+    var entity = Filter.Entity(index);
 
     var component1Value = Component1Operations.Get(entity);
     var component2Value = Component2Operations.Get(entity);
@@ -99,8 +102,7 @@ For now to use this extension you need to clone fork of the [ecslite](https://gi
 
 ## Future plans
 
-1. Wrapper for Filter access
-2. Entity creation in Job
-3. True entity deletion in Job
-4. Find ways to resize internal managed arrays in Job that has been wrapped to NativeArray
-5. Add AutoReset 
+1. Entity creation in Job
+2. True entity deletion in Job
+3. Find ways to resize internal managed arrays in Job that has been wrapped to NativeArray
+4. Add AutoReset 
