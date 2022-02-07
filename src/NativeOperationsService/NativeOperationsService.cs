@@ -4,11 +4,11 @@ using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.Extensions;
 using OdinGames.EcsLite.Native.NativeOperations;
 using OdinGames.EcsLite.Native.NativeOperations.FilterWrapper;
+using OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData;
 using OdinGames.EcsLite.Native.NativeOperationsService.Base;
 using OdinGames.EcsLite.Native.NativeOperationsWrapper;
 using OdinGames.EcsLite.Native.NativeOperationsWrapper.Base;
 using Unity.Collections;
-using UnityEngine;
 
 namespace OdinGames.EcsLite.Native.NativeOperationsService
 {
@@ -31,19 +31,12 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
             _nativeFilters = new List<NativeFilterWrapper>();
         }
-        
+
         public void ApplyOperations(EcsSystems systems)
         {
             foreach (var operations in _usedReadWriteOperationsWrappers)
             {
-                try
-                {
-                    ApplyReadWriteOperations(systems, operations);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.Message);
-                }
+                ApplyReadWriteOperations(systems, operations);
 
                 operations.Dispose();
             }
@@ -58,35 +51,37 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             {
                 filter.Dispose();
             }
+
             _usedReadOnlyOperationsWrappers.Clear();
             _nativeFilters.Clear();
 #endif
-            
+
             _usedReadWriteOperationsWrappers.Clear();
         }
 
         public NativeFilterWrapper GetFilterWrapper(EcsFilter filter)
         {
-            NativeFilterWrapper wrapper = default; ;
-            
+            NativeFilterWrapper wrapper = default;
+            ;
+
             wrapper.Init(filter);
-            
+
 #if UNITY_EDITOR
             _nativeFilters.Add(wrapper);
 #endif
-            
+
             return wrapper;
         }
-        
+
         public ReadOnlyNativeEntityOperations<T> GetReadOnlyOperations<T>(EcsSystems systems)
             where T : unmanaged
         {
             var typeofT = typeof(T);
-            
+
             var pool = systems.GetWorld().GetPool<T>();
             var sparse = pool.GetRawSparseItems();
             var dense = pool.GetRawDenseItems();
-            
+
             var nativeSparse = sparse.WrapToReadOnlyNative();
             var nativeDense = dense.WrapToReadOnlyNative();
 
@@ -94,7 +89,7 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 
             if (_operations.ContainsKey(typeofT))
             {
-                wrapper = (NativeReadOnlyOperationsWrapper<T>)_operations[typeofT];
+                wrapper = (NativeReadOnlyOperationsWrapper<T>) _operations[typeofT];
             }
             else
             {
@@ -103,29 +98,81 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             }
 
             _usedReadOnlyOperationsWrappers.Add(wrapper);
-            
+
             wrapper.Init(nativeSparse,
                 nativeDense);
 
             return wrapper.Operations;
         }
 
-        public ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems, 
-            Allocator operationAllocator = Allocator.TempJob,
+        public LazyReadWriteNativeEntityOperations<T> GetLazyReadWriteOperations<T>(EcsSystems systems,
+            Allocator operationAllocator = Allocator.TempJob, 
             int internalBuffersCapacity = 30) 
             where T : unmanaged
         {
             var typeofT = typeof(T);
+
+            NativeLazyReadWriteOperationsWrapper<T> wrapper;
+
+            if (_readWriteOperations.ContainsKey(typeofT))
+            {
+                wrapper = (NativeLazyReadWriteOperationsWrapper<T>) _readWriteOperations[typeofT];
+            }
+            else
+            {
+                wrapper = new NativeLazyReadWriteOperationsWrapper<T>();
+                _readWriteOperations.Add(typeofT, wrapper);
+            }
             
+            _usedReadWriteOperationsWrappers.Add(wrapper);
+
+            var internalData = GetReadWriteOperationsInternalData<T>(systems);
+    
+            wrapper.Init(internalData, operationAllocator, internalBuffersCapacity);
+
+            return wrapper.Operations;
+        }
+
+        public ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems,
+            Allocator operationAllocator = Allocator.TempJob,
+            int internalBuffersCapacity = 30)
+            where T : unmanaged
+        {
+            var typeofT = typeof(T);
+
+            NativeReadWriteOperationsWrapper<T> wrapper;
+
+            if (_readWriteOperations.ContainsKey(typeofT))
+            {
+                wrapper = (NativeReadWriteOperationsWrapper<T>) _readWriteOperations[typeofT];
+            }
+            else
+            {
+                wrapper = new NativeReadWriteOperationsWrapper<T>();
+                _readWriteOperations.Add(typeofT, wrapper);
+            }
+            
+            _usedReadWriteOperationsWrappers.Add(wrapper);
+
+            var internalData = GetReadWriteOperationsInternalData<T>(systems);
+    
+            wrapper.Init(internalData, operationAllocator, internalBuffersCapacity);
+
+            return wrapper.Operations;
+        }
+
+        private ReadWriteOperationsInternalData<T> GetReadWriteOperationsInternalData<T>(EcsSystems systems)
+            where T : unmanaged
+        {
             var world = systems.GetWorld();
             var pool = world.GetPool<T>();
-            
+
             var sparse = pool.GetRawSparseItems();
             var dense = pool.GetRawDenseItems();
             var recycled = pool.GetRawRecycledItems();
 
             var entities = world.GetRawEntities();
-            
+
             var nativeSparse = sparse.WrapToNative();
             var nativeDense = dense.WrapToNative();
             var nativeRecycled = recycled.WrapToNative();
@@ -135,34 +182,18 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             ref var recycledItemsCount = ref pool.GetRawRecycledItemsCount();
             ref var denseItemsCount = ref pool.GetRawDenseItemsCount();
             var poolId = pool.GetId();
-
-            NativeReadWriteOperationsWrapper<T> wrapper;
-
-            if (_readWriteOperations.ContainsKey(typeofT))
-            {
-                wrapper = (NativeReadWriteOperationsWrapper<T>)_readWriteOperations[typeofT];
-            }
-            else
-            {
-                wrapper = new NativeReadWriteOperationsWrapper<T>();
-                _readWriteOperations.Add(typeofT, wrapper);
-            }
-             
-#if UNITY_EDITOR
-            _usedReadWriteOperationsWrappers.Add(wrapper);
-#endif
             
-            wrapper.Init(nativeSparse,
-                nativeDense, 
-                nativeRecycled, 
-                nativeEntities, 
-                ref recycledItemsCount, 
-                ref denseItemsCount, 
-                poolId,
-                operationAllocator,
-                internalBuffersCapacity);
+            ReadWriteOperationsInternalData<T> internalData = default;
+            
+            internalData.Init(nativeSparse,
+                              nativeDense, 
+                              nativeRecycled, 
+                              nativeEntities, 
+                              ref recycledItemsCount, 
+                              ref denseItemsCount, 
+                              poolId);
 
-            return wrapper.Operations;
+            return internalData;
         }
 
         private void ApplyReadWriteOperations(EcsSystems systems, INativeReadWriteOperationsWrapper operationsWrapper)
@@ -178,10 +209,17 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 
             foreach (var pair in readWriteNativeEntityOperationsWrapper.AddCache)
             {
-                world.OnEntityChange(pair.Key, pair.Value, true);
-#if UNITY_EDITOR            
-                world.RaiseEntityChangeEvent(pair.Key);
-#endif                
+                try
+                {
+                    world.OnEntityChange(pair.Key, pair.Value, true);
+#if UNITY_EDITOR
+                    world.RaiseEntityChangeEvent(pair.Key);
+#endif
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 
@@ -191,10 +229,17 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 
             foreach (var pair in readWriteNativeEntityOperationsWrapper.DeleteCache)
             {
-                world.OnEntityChange(pair.Key, pair.Value, false);
-#if UNITY_EDITOR                
-                world.RaiseEntityChangeEvent(pair.Key);
-#endif                
+                try
+                {
+                    world.OnEntityChange(pair.Key, pair.Value, false);
+#if UNITY_EDITOR
+                    world.RaiseEntityChangeEvent(pair.Key);
+#endif
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 
@@ -203,7 +248,14 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             var world = systems.GetWorld();
             foreach (int entity in nativeReadWriteOperationsWrapper.EntitiesToRemove)
             {
-                world.DelEntity(entity);
+                try
+                {
+                    world.DelEntity(entity);
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 

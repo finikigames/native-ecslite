@@ -1,17 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.Base;
 using OdinGames.EcsLite.Native.Extensions;
 using OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData;
-using OdinGames.EcsLite.Native.NativeOperationsWrapper;
-using OdinGames.EcsLite.Native.WrappedData;
-using Unity.Burst;
-using Unity.Collections;
 using UnityEngine;
 
 namespace OdinGames.EcsLite.Native.NativeOperations
 {
-    public struct ReadWriteNativeEntityOperations<T> : IReadWriteNativeEntityOperations<T> where T : unmanaged
+    public struct LazyReadWriteNativeEntityOperations<T> : ILazyReadWriteNativeEntityOperations<T> where T : unmanaged
     {
         private ReadWriteOperationsInternalData<T> _internalData;
 
@@ -67,36 +62,20 @@ namespace OdinGames.EcsLite.Native.NativeOperations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get(int entity)
         {
+            if (!Has(entity)) return Add(entity);
             var realIndex = _internalData.SparseItems.Array[entity];
             return _internalData.DenseItems.Array[realIndex];
         }
 
-        public void Add(int entity, T value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T GetRef(int entity)
         {
-            int idx;
-            if (_internalData.RecycledItemsCount.Value > 0)
-            {
-                idx = _internalData.RecycledItems.Array[_internalData.RecycledItemsCount.PreIncrement()];
-            }
-            else
-            {
-                idx = _internalData.DenseItemsCount.Value;
-                if (_internalData.DenseItemsCount.Value == _internalData.DenseItems.Array.Length) 
-                {
-                    Debug.LogError("For now i have no idea is it possible to resize managed array treated as a NativeArray from job. Try to increase entities count in WorldConfig");
-                }
-                
-                _internalData.DenseItemsCount++;
-
-                _internalData.DenseItems.Array[idx] = value;
-            }
-
-            _internalData.SparseItems[entity] = idx;
-            _internalData.ComponentsToAdd.TryAdd(entity, _internalData.ID);
-            _internalData.Entities[entity].ComponentsCount++;
+            if (!Has(entity)) return ref Add(entity);
+            var realIndex = _internalData.SparseItems.Array[entity];
+            return ref _internalData.DenseItems.Array.GetRef(realIndex);
         }
-        
-        public ref T Add(int entity)
+
+        private ref T Add(int entity)
         {
             int idx;
             if (_internalData.RecycledItemsCount.Value > 0) 
@@ -113,19 +92,12 @@ namespace OdinGames.EcsLite.Native.NativeOperations
                 _internalData.DenseItemsCount++;
 
                 //if (_isAutoReset)
-                   // _autoReset.Invoke(ref _denseItems.Array.GetRef(idx));
+                // _autoReset.Invoke(ref _denseItems.Array.GetRef(idx));
             }
             _internalData.SparseItems[entity] = idx;
             _internalData.ComponentsToAdd.TryAdd(entity, _internalData.ID);
             _internalData.Entities[entity].ComponentsCount++;
             return ref _internalData.DenseItems.Array.GetRef(idx);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T GetRef(int entity)
-        {
-            var realIndex = _internalData.SparseItems.Array[entity];
-            return ref _internalData.DenseItems.Array.GetRef(realIndex);
         }
 
         public void Dispose()
@@ -134,6 +106,9 @@ namespace OdinGames.EcsLite.Native.NativeOperations
             _internalData.DenseItems.UnwrapFromNative();
             _internalData.RecycledItems.UnwrapFromNative();
             _internalData.Entities.UnwrapFromNative();
+            
+            _internalData.RecycledItemsCount.Dispose();
+            _internalData.DenseItemsCount.Dispose();
         }
     }
 }

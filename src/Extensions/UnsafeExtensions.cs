@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace OdinGames.EcsLite.Native.Extensions
 {
-    static unsafe class UnsafeExtensions
+    public static unsafe class UnsafeExtensions
     {
         internal static ref T GetRef<T>(this NativeArray<T> array, int index)
             where T : struct
@@ -18,7 +18,7 @@ namespace OdinGames.EcsLite.Native.Extensions
             }
         }
         
-        internal readonly struct SharedIndex : IDisposable
+        public struct SharedIndex : IDisposable
         {
             [NativeDisableUnsafePtrRestriction] 
             private readonly int* _index;

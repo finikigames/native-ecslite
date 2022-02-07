@@ -6,11 +6,11 @@ using Unity.Collections;
 
 namespace OdinGames.EcsLite.Native.NativeOperationsWrapper
 {
-    public class NativeReadWriteOperationsWrapper<T> : INativeReadWriteOperationsWrapper, 
-                                                       INativeOperationsWrapper<T>
+    public class NativeLazyReadWriteOperationsWrapper<T> : INativeReadWriteOperationsWrapper, 
+                                                           INativeOperationsWrapper<T>
         where T : unmanaged
     {
-        public ReadWriteNativeEntityOperations<T> Operations;
+        public LazyReadWriteNativeEntityOperations<T> Operations;
         
         public delegate void AutoResetDelegate(ref T value);
 
@@ -29,7 +29,7 @@ namespace OdinGames.EcsLite.Native.NativeOperationsWrapper
             DeleteCache = new NativeHashMap<int, int>(defaultCapacity, operationAllocator);
             AddCache = new NativeHashMap<int, int>(defaultCapacity, operationAllocator);
             EntitiesToRemove = new NativeHashSet<int>(defaultCapacity, operationAllocator);
-            
+
             //AutoResetHelper.GetResetMethod(this);
             //var isAutoReset = ResetDelegate == null;
             
@@ -38,7 +38,6 @@ namespace OdinGames.EcsLite.Native.NativeOperationsWrapper
                                          EntitiesToRemove);
             
             Operations = default;
-
 
             Operations.Init(internalData);
         }

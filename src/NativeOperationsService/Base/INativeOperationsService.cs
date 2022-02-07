@@ -1,6 +1,7 @@
 using System;
 using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.NativeOperations;
+using OdinGames.EcsLite.Native.NativeOperations.FilterWrapper;
 using Unity.Collections;
 
 namespace OdinGames.EcsLite.Native.NativeOperationsService.Base
@@ -13,8 +14,15 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService.Base
             where T : unmanaged;
 
         ReadWriteNativeEntityOperations<T> GetReadWriteOperations<T>(EcsSystems systems, 
-                                                                Allocator allocator = Allocator.TempJob,
-                                                                int internalBuffersCapacity = 30) 
+                                                                     Allocator allocator = Allocator.TempJob,
+                                                                     int internalBuffersCapacity = 30) 
             where T : unmanaged;
+
+        LazyReadWriteNativeEntityOperations<T> GetLazyReadWriteOperations<T>(EcsSystems systems,
+                                                                             Allocator allocator = Allocator.TempJob, 
+                                                                             int internalBuffersCapacity = 30)
+            where T : unmanaged;
+
+        NativeFilterWrapper GetFilterWrapper(EcsFilter filter);
     }
 }
