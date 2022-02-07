@@ -14,7 +14,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations.FilterWrapper
             _filter = filter.GetRawEntities().WrapToReadOnlyNative();
         }
 
-        public int Entity(int index)
+        public int this[int index]
             => _filter.Array[index];
 
         public void Dispose()

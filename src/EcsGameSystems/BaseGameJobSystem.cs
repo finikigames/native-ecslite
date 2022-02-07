@@ -10,6 +10,8 @@ namespace OdinGames.EcsLite.Native.EcsGameSystems
     /// <typeparam name="TJob"></typeparam>
     public abstract class BaseGameJobSystem<TJob> : IEcsRunSystem where TJob : struct, IJobParallelFor
     {
+        private EcsFilter _filter;
+        
         protected INativeOperationsService OperationsService;
     
         protected abstract INativeOperationsService ProvideNativeOperationsService();
@@ -27,9 +29,10 @@ namespace OdinGames.EcsLite.Native.EcsGameSystems
         public void Run(EcsSystems systems)
         {
             if (!RunConditions(systems)) return;
-            if (OperationsService == null) OperationsService = ProvideNativeOperationsService();
-
-            var filterEntitiesCount = GetFilter(systems.GetWorld()).GetEntitiesCount();
+            OperationsService ??= ProvideNativeOperationsService();
+            _filter ??= GetFilter(systems.GetWorld());
+            
+            var filterEntitiesCount = _filter.GetEntitiesCount();
             if (filterEntitiesCount > 0)
             {
                 TJob job = default;
