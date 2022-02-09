@@ -52,10 +52,10 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 filter.Dispose();
             }
 
-            _usedReadOnlyOperationsWrappers.Clear();
-            _nativeFilters.Clear();
 #endif
 
+            _usedReadOnlyOperationsWrappers.Clear();
+            _nativeFilters.Clear();
             _usedReadWriteOperationsWrappers.Clear();
         }
 
