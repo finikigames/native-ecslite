@@ -18,17 +18,19 @@ namespace OdinGames.EcsLite.Native.NativeOperationsWrapper
         
         public FunctionPointer<AutoResetDelegate> NativeResetDelegate { get; set; }
 
-        public NativeHashMap<int, int> DeleteCache { get; set; }
-        public NativeHashMap<int, int> AddCache { get; set; }
-        public NativeHashSet<int> EntitiesToRemove { get; set; }
+        public int ID { get; private set; }
+        public NativeList<int> DeleteCache { get; private set; }
+        public NativeList<int> AddCache { get; private set; }
+        public NativeList<int> EntitiesToRemove { get; private set; }
 
         public void Init(ReadWriteOperationsInternalData<T> internalData,
                          Allocator operationAllocator = Allocator.TempJob, 
                          int defaultCapacity = 30)
         {
-            DeleteCache = new NativeHashMap<int, int>(defaultCapacity, operationAllocator);
-            AddCache = new NativeHashMap<int, int>(defaultCapacity, operationAllocator);
-            EntitiesToRemove = new NativeHashSet<int>(defaultCapacity, operationAllocator);
+            ID = internalData.ID;
+            DeleteCache = new NativeList<int>(defaultCapacity, operationAllocator);
+            AddCache = new NativeList<int>(defaultCapacity, operationAllocator);
+            EntitiesToRemove = new NativeList<int>(defaultCapacity, operationAllocator);
 
             //AutoResetHelper.GetResetMethod(this);
             //var isAutoReset = ResetDelegate == null;

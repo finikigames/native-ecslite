@@ -210,13 +210,14 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
         {
             var world = systems.GetWorld();
 
-            foreach (var pair in readWriteNativeEntityOperationsWrapper.AddCache)
+            var id = readWriteNativeEntityOperationsWrapper.ID;
+            foreach (var entity in readWriteNativeEntityOperationsWrapper.AddCache)
             {
                 try
                 {
-                    world.OnEntityChange(pair.Key, pair.Value, true);
+                    world.OnEntityChange(entity, id, true);
 #if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(pair.Key);
+                    world.RaiseEntityChangeEvent(entity);
 #endif
                 }
                 catch
@@ -230,13 +231,14 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
         {
             var world = systems.GetWorld();
 
-            foreach (var pair in readWriteNativeEntityOperationsWrapper.DeleteCache)
+            var id = readWriteNativeEntityOperationsWrapper.ID;
+            foreach (var entity in readWriteNativeEntityOperationsWrapper.DeleteCache)
             {
                 try
                 {
-                    world.OnEntityChange(pair.Key, pair.Value, false);
+                    world.OnEntityChange(entity, id, false);
 #if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(pair.Key);
+                    world.RaiseEntityChangeEvent(entity);
 #endif
                 }
                 catch

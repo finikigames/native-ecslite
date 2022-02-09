@@ -17,9 +17,9 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData.Base
                   ref int denseItemsCount,
                   int id);
 
-        void InitCollections(NativeHashMap<int, int> componentsToRemove,
-                             NativeHashMap<int, int> componentsToAdd, 
-                             NativeHashSet<int> entitiesToRemove, 
+        void InitCollections(NativeList<int> componentsToRemove,
+                             NativeList<int> componentsToAdd, 
+                             NativeList<int> entitiesToRemove, 
                              bool isAutoReset = false, 
                              FunctionPointer<NativeReadWriteOperationsWrapper<T>.AutoResetDelegate> resetDelegate = default);
     }

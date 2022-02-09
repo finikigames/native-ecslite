@@ -33,7 +33,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations
             ref var sparseData = ref _internalData.SparseItems.Array.GetRef(entity);
             if (sparseData > 0) 
             {
-                _internalData.ComponentsToRemove.TryAdd(entity, _internalData.ID);
+                _internalData.ComponentsToRemove.AddNoResize(entity);
                 _internalData.RecycledItems.Array[_internalData.RecycledItemsCount.PostIncrement()] = sparseData;
 
                 if (_internalData.RecycledItemsCount.Value == _internalData.RecycledItems.Array.Length) {
@@ -54,14 +54,14 @@ namespace OdinGames.EcsLite.Native.NativeOperations
                 
                 if (entityData.ComponentsCount == 0) 
                 {
-                    _internalData.EntitiesToRemove.Add(entity);
+                    _internalData.EntitiesToRemove.AddNoResize(entity);
                 }
             }
         }
 
         public void DelEntity(int entity)
         {
-            _internalData.EntitiesToRemove.Add(entity);
+            _internalData.EntitiesToRemove.AddNoResize(entity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -92,7 +92,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations
             }
 
             _internalData.SparseItems[entity] = idx;
-            _internalData.ComponentsToAdd.TryAdd(entity, _internalData.ID);
+            _internalData.ComponentsToAdd.AddNoResize(entity);
             _internalData.Entities[entity].ComponentsCount++;
         }
         
@@ -116,7 +116,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations
                    // _autoReset.Invoke(ref _denseItems.Array.GetRef(idx));
             }
             _internalData.SparseItems[entity] = idx;
-            _internalData.ComponentsToAdd.TryAdd(entity, _internalData.ID);
+            _internalData.ComponentsToAdd.AddNoResize(entity);
             _internalData.Entities[entity].ComponentsCount++;
             return ref _internalData.DenseItems.Array.GetRef(idx);
         }

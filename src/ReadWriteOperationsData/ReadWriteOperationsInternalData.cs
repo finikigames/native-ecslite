@@ -19,10 +19,10 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData
         public UnsafeExtensions.SharedIndex RecycledItemsCount;
         public UnsafeExtensions.SharedIndex DenseItemsCount;
 
-        public NativeHashMap<int, int>.ParallelWriter ComponentsToRemove;
-        public NativeHashMap<int, int>.ParallelWriter ComponentsToAdd;
+        public NativeList<int>.ParallelWriter ComponentsToRemove;
+        public NativeList<int>.ParallelWriter ComponentsToAdd;
 
-        public NativeHashSet<int>.ParallelWriter EntitiesToRemove;
+        public NativeList<int>.ParallelWriter EntitiesToRemove;
 
         public int ID;
 
@@ -48,9 +48,9 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData
             ID = id;
         }
 
-        public void InitCollections(NativeHashMap<int, int> componentsToRemove,
-                                    NativeHashMap<int, int> componentsToAdd, 
-                                    NativeHashSet<int> entitiesToRemove, 
+        public void InitCollections(NativeList<int> componentsToRemove,
+                                    NativeList<int> componentsToAdd, 
+                                    NativeList<int> entitiesToRemove, 
                                     bool isAutoReset = false, 
                                     FunctionPointer<NativeReadWriteOperationsWrapper<T>.AutoResetDelegate> resetDelegate = default)
         {
