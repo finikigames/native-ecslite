@@ -18,8 +18,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
 
         private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations;
 
-        private readonly List<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers;
-        private readonly List<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers;
+        private readonly HashSet<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers;
+        private readonly HashSet<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers;
         private readonly List<NativeFilterWrapper> _nativeFilters;
 
         [UnityEngine.Scripting.Preserve]
@@ -27,8 +27,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
         {
             _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
             _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
-            _usedReadWriteOperationsWrappers = new List<INativeReadWriteOperationsWrapper>(20);
-            _usedReadOnlyOperationsWrappers = new List<INativeOperationsWrapperTypeless>(20);
+            _usedReadWriteOperationsWrappers = new HashSet<INativeReadWriteOperationsWrapper>();
+            _usedReadOnlyOperationsWrappers = new HashSet<INativeOperationsWrapperTypeless>();
             _nativeFilters = new List<NativeFilterWrapper>();
         }
 
@@ -97,7 +97,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 _operations.Add(typeofT, wrapper);
             }
 
-            _usedReadOnlyOperationsWrappers.Add(wrapper);
+            if (!_usedReadOnlyOperationsWrappers.Contains(wrapper))
+                _usedReadOnlyOperationsWrappers.Add(wrapper);
 
             wrapper.Init(nativeSparse,
                 nativeDense);
@@ -124,7 +125,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 _readWriteOperations.Add(typeofT, wrapper);
             }
             
-            _usedReadWriteOperationsWrappers.Add(wrapper);
+            if (!_usedReadWriteOperationsWrappers.Contains(wrapper))
+                _usedReadWriteOperationsWrappers.Add(wrapper);
 
             var internalData = GetReadWriteOperationsInternalData<T>(systems);
     
@@ -152,7 +154,8 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
                 _readWriteOperations.Add(typeofT, wrapper);
             }
             
-            _usedReadWriteOperationsWrappers.Add(wrapper);
+            if (!_usedReadWriteOperationsWrappers.Contains(wrapper))
+                _usedReadWriteOperationsWrappers.Add(wrapper);
 
             var internalData = GetReadWriteOperationsInternalData<T>(systems);
     
