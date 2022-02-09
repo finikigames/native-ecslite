@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Leopotam.EcsLite;
 using OdinGames.EcsLite.Native.Extensions;
 using OdinGames.EcsLite.Native.WrappedData;
@@ -17,6 +17,9 @@ namespace OdinGames.EcsLite.Native.NativeOperations.FilterWrapper
         public int this[int index]
             => _filter.Array[index];
 
+        public int Count()
+            => _filter.Array.Length;
+        
         public void Dispose()
         {
             _filter.UnwrapFromNative();
