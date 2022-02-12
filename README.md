@@ -7,6 +7,8 @@ An extension for Leopotam ecslite framework with full per entity operations supp
 ## Badges
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 [![Downloads](https://img.shields.io/github/downloads/odingamesdev/native-ecslite/total.svg)](https://github.com/odingamesdev/native-ecslite/releases)
+## Documentation
+
 ## Usage/Examples
 
 System example:
@@ -89,6 +91,8 @@ public struct SummAndWriteJob : IJobParallelFor
 ```
 And that's all! All you need is to operate over entity values.
 You also can use this mechanism outside ecs system, for example in some kind of service, in this sutuation you need to call `ApplyOperations(EcsSystems systems)` on `NativeOperationsService` by yourself
+
+## FAQ
 
 ## Installation
 
