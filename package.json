@@ -3,7 +3,7 @@
     "author": "Odin Games",
     "displayName": "Native LeoECS Lite",
     "description": "Extension for LeoECS Lite with full per entity operations support from Unity Job native side",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "keywords": [
         "leoecslite",
         "leoecs",
