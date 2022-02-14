@@ -1,105 +1,67 @@
-using System;
 using System.Collections.Generic;
+using Codice.Client.BaseCommands.BranchExplorer.ExplorerData;
 using Leopotam.EcsLite;
+using OdinGames.EcsLite.Native.Context;
 using OdinGames.EcsLite.Native.Extensions;
 using OdinGames.EcsLite.Native.NativeOperations;
 using OdinGames.EcsLite.Native.NativeOperations.FilterWrapper;
 using OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData;
 using OdinGames.EcsLite.Native.NativeOperationsService.Base;
-using OdinGames.EcsLite.Native.NativeOperationsWrapper;
-using OdinGames.EcsLite.Native.NativeOperationsWrapper.Base;
 using Unity.Collections;
 
 namespace OdinGames.EcsLite.Native.NativeOperationsService
 {
     public class NativeOperationsService : INativeOperationsService
     {
-        private readonly Dictionary<Type, INativeOperationsWrapperTypeless> _operations;
-
-        private readonly Dictionary<Type, INativeReadWriteOperationsWrapper> _readWriteOperations;
-
-        private readonly HashSet<INativeReadWriteOperationsWrapper> _usedReadWriteOperationsWrappers;
-        private readonly HashSet<INativeOperationsWrapperTypeless> _usedReadOnlyOperationsWrappers;
-        private readonly List<NativeFilterWrapper> _nativeFilters;
+        private readonly Dictionary<OperationsContext, ContextOperationsHolder> _contextOperations;
+        private readonly OperationsContext _defaultContext;
+        private OperationsContext _currentContext;
 
         [UnityEngine.Scripting.Preserve]
         public NativeOperationsService()
         {
-            _operations = new Dictionary<Type, INativeOperationsWrapperTypeless>(20);
-            _readWriteOperations = new Dictionary<Type, INativeReadWriteOperationsWrapper>(20);
-            _usedReadWriteOperationsWrappers = new HashSet<INativeReadWriteOperationsWrapper>();
-            _usedReadOnlyOperationsWrappers = new HashSet<INativeOperationsWrapperTypeless>();
-            _nativeFilters = new List<NativeFilterWrapper>();
+            _contextOperations = new Dictionary<OperationsContext, ContextOperationsHolder>();
+            _defaultContext = OperationsContext.Create();
+            _currentContext = _defaultContext;
         }
 
         public void ApplyOperations(EcsSystems systems)
         {
-            foreach (var operations in _usedReadWriteOperationsWrappers)
-            {
-                ApplyReadWriteOperations(systems, operations);
-
-                operations.Dispose();
-            }
-
-#if UNITY_EDITOR
-            foreach (var operationsPair in _usedReadOnlyOperationsWrappers)
-            {
-                operationsPair.Dispose();
-            }
-
-            foreach (var filter in _nativeFilters)
-            {
-                filter.Dispose();
-            }
-
-#endif
-
-            _usedReadOnlyOperationsWrappers.Clear();
-            _nativeFilters.Clear();
-            _usedReadWriteOperationsWrappers.Clear();
+            var context = _contextOperations[_currentContext];
+            context.ApplyContextOperations(systems);   
         }
 
         public NativeFilterWrapper GetFilterWrapper(EcsFilter filter)
         {
             NativeFilterWrapper wrapper = default;
-            ;
 
             wrapper.Init(filter);
-
-#if UNITY_EDITOR
-            _nativeFilters.Add(wrapper);
-#endif
+            
+            ContextOperationsHolder holder = ResolveHolder();
+            holder.RegisterFilter(wrapper);
 
             return wrapper;
         }
 
+        public void ChangeContext(OperationsContext context) 
+            => _currentContext = context;
+
+        public void ChangeToDefaultContext()
+            => _currentContext = _defaultContext;
+
         public ReadOnlyNativeEntityOperations<T> GetReadOnlyOperations<T>(EcsSystems systems)
             where T : unmanaged
         {
-            var typeofT = typeof(T);
-
             var pool = systems.GetWorld().GetPool<T>();
             var sparse = pool.GetRawSparseItems();
             var dense = pool.GetRawDenseItems();
 
             var nativeSparse = sparse.WrapToReadOnlyNative();
             var nativeDense = dense.WrapToReadOnlyNative();
+            
+            ContextOperationsHolder holder = ResolveHolder();
 
-            NativeReadOnlyOperationsWrapper<T> wrapper;
-
-            if (_operations.ContainsKey(typeofT))
-            {
-                wrapper = (NativeReadOnlyOperationsWrapper<T>) _operations[typeofT];
-            }
-            else
-            {
-                wrapper = new NativeReadOnlyOperationsWrapper<T>();
-                _operations.Add(typeofT, wrapper);
-            }
-
-            if (!_usedReadOnlyOperationsWrappers.Contains(wrapper))
-                _usedReadOnlyOperationsWrappers.Add(wrapper);
-
+            var wrapper = holder.GetReadOnlyOperationsWrapper<T>();
             wrapper.Init(nativeSparse,
                 nativeDense);
 
@@ -111,23 +73,10 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             int internalBuffersCapacity = 30) 
             where T : unmanaged
         {
-            var typeofT = typeof(T);
+            ContextOperationsHolder holder = ResolveHolder();
 
-            NativeLazyReadWriteOperationsWrapper<T> wrapper;
-
-            if (_readWriteOperations.ContainsKey(typeofT))
-            {
-                wrapper = (NativeLazyReadWriteOperationsWrapper<T>) _readWriteOperations[typeofT];
-            }
-            else
-            {
-                wrapper = new NativeLazyReadWriteOperationsWrapper<T>();
-                _readWriteOperations.Add(typeofT, wrapper);
-            }
+            var wrapper = holder.GetLazyReadWriteOperationsWrapper<T>();
             
-            if (!_usedReadWriteOperationsWrappers.Contains(wrapper))
-                _usedReadWriteOperationsWrappers.Add(wrapper);
-
             var internalData = GetReadWriteOperationsInternalData<T>(systems);
     
             wrapper.Init(internalData, operationAllocator, internalBuffersCapacity);
@@ -140,28 +89,32 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             int internalBuffersCapacity = 30)
             where T : unmanaged
         {
-            var typeofT = typeof(T);
+            ContextOperationsHolder holder = ResolveHolder();
 
-            NativeReadWriteOperationsWrapper<T> wrapper;
-
-            if (_readWriteOperations.ContainsKey(typeofT))
-            {
-                wrapper = (NativeReadWriteOperationsWrapper<T>) _readWriteOperations[typeofT];
-            }
-            else
-            {
-                wrapper = new NativeReadWriteOperationsWrapper<T>();
-                _readWriteOperations.Add(typeofT, wrapper);
-            }
-            
-            if (!_usedReadWriteOperationsWrappers.Contains(wrapper))
-                _usedReadWriteOperationsWrappers.Add(wrapper);
+            var wrapper = holder.GetReadWriteOperationsWrapper<T>();
 
             var internalData = GetReadWriteOperationsInternalData<T>(systems);
     
             wrapper.Init(internalData, operationAllocator, internalBuffersCapacity);
 
             return wrapper.Operations;
+        }
+
+        private ContextOperationsHolder ResolveHolder()
+        {
+            ContextOperationsHolder holder;
+            
+            if (_contextOperations.ContainsKey(_currentContext))
+            {
+                holder = _contextOperations[_currentContext];
+            }
+            else
+            {
+                holder = new ContextOperationsHolder();
+                _contextOperations.Add(_currentContext, holder);
+            }
+
+            return holder;
         }
 
         private ReadWriteOperationsInternalData<T> GetReadWriteOperationsInternalData<T>(EcsSystems systems)
@@ -199,81 +152,11 @@ namespace OdinGames.EcsLite.Native.NativeOperationsService
             return internalData;
         }
 
-        private void ApplyReadWriteOperations(EcsSystems systems, INativeReadWriteOperationsWrapper operationsWrapper)
-        {
-            ApplyAddComponents(systems, operationsWrapper);
-            ApplyRemoveComponents(systems, operationsWrapper);
-            ApplyRemoveEntities(systems, operationsWrapper);
-        }
-
-        private void ApplyAddComponents(EcsSystems systems, INativeReadWriteOperationsWrapper readWriteNativeEntityOperationsWrapper)
-        {
-            var world = systems.GetWorld();
-
-            var id = readWriteNativeEntityOperationsWrapper.ID;
-            foreach (var entity in readWriteNativeEntityOperationsWrapper.AddCache)
-            {
-                try
-                {
-                    world.OnEntityChange(entity, id, true);
-#if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(entity);
-#endif
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
-
-        private void ApplyRemoveComponents(EcsSystems systems, INativeReadWriteOperationsWrapper readWriteNativeEntityOperationsWrapper)
-        {
-            var world = systems.GetWorld();
-
-            var id = readWriteNativeEntityOperationsWrapper.ID;
-            foreach (var entity in readWriteNativeEntityOperationsWrapper.DeleteCache)
-            {
-                try
-                {
-                    world.OnEntityChange(entity, id, false);
-#if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(entity);
-#endif
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
-
-        private void ApplyRemoveEntities(EcsSystems systems, INativeReadWriteOperationsWrapper nativeReadWriteOperationsWrapper)
-        {
-            var world = systems.GetWorld();
-            foreach (int entity in nativeReadWriteOperationsWrapper.EntitiesToRemove)
-            {
-                try
-                {
-                    world.DelEntity(entity);
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
-
         public void Dispose()
         {
-            foreach (var wrapper in _usedReadOnlyOperationsWrappers)
+            foreach (var pair in _contextOperations)
             {
-                 wrapper.Dispose();
-            }
-            
-            foreach (var wrapper in _usedReadWriteOperationsWrappers)
-            {
-                 wrapper.Dispose();
+                pair.Value.Dispose();
             }
         }
     }

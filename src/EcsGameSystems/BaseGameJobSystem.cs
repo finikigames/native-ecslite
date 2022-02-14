@@ -8,13 +8,15 @@ namespace OdinGames.EcsLite.Native.EcsGameSystems
     /// Sample realization of base game system that Schedule job of specified type
     /// </summary>
     /// <typeparam name="TJob"></typeparam>
-    public abstract class BaseGameJobSystem<TJob> : IEcsRunSystem where TJob : struct, IJobParallelFor
+    public abstract class BaseGameJobSystem<TJob> : IEcsRunSystem where TJob : struct
     {
         private EcsFilter _filter;
         
         protected INativeOperationsService OperationsService;
     
         protected abstract INativeOperationsService ProvideNativeOperationsService();
+
+        protected abstract void Schedule(ref TJob job);
         
         protected abstract void SetData(EcsSystems systems, ref TJob job);
 
@@ -38,7 +40,7 @@ namespace OdinGames.EcsLite.Native.EcsGameSystems
                 TJob job = default;
                 SetData(systems, ref job);
 
-                job.Schedule(filterEntitiesCount, GetChunkSize(systems)).Complete();
+                Schedule(ref job);
                 
                 OperationsService.ApplyOperations(systems);
                 
