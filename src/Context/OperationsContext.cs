@@ -2,7 +2,7 @@
 
 namespace OdinGames.EcsLite.Native.Context
 {
-    public struct OperationsContext
+    public class OperationsContext
     {
         private Guid _guid;
 
