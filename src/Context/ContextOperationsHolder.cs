@@ -143,7 +143,7 @@ namespace OdinGames.EcsLite.Native.Context
                 try
                 {
                     world.OnEntityChange(entity, id, true);
-#if UNITY_EDITOR
+#if DEBUG || LEOECSLITE_WORLD_EVENTS
                     world.RaiseEntityChangeEvent(entity);
 #endif
                 }
@@ -164,7 +164,7 @@ namespace OdinGames.EcsLite.Native.Context
                 try
                 {
                     world.OnEntityChange(entity, id, false);
-#if UNITY_EDITOR
+#if DEBUG || LEOECSLITE_WORLD_EVENTS
                     world.RaiseEntityChangeEvent(entity);
 #endif
                 }
