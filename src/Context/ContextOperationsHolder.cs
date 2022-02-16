@@ -140,17 +140,10 @@ namespace OdinGames.EcsLite.Native.Context
             var id = readWriteNativeEntityOperationsWrapper.ID;
             foreach (var entity in readWriteNativeEntityOperationsWrapper.AddCache)
             {
-                try
-                {
-                    world.OnEntityChange(entity, id, true);
-#if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(entity);
+                world.OnEntityChangeInternal(entity, id, true);
+#if DEBUG || LEOECSLITE_WORLD_EVENTS
+                world.RaiseEntityChangeEvent(entity);
 #endif
-                }
-                catch
-                {
-                    // ignored
-                }
             }
         }
 
@@ -161,17 +154,10 @@ namespace OdinGames.EcsLite.Native.Context
             var id = readWriteNativeEntityOperationsWrapper.ID;
             foreach (var entity in readWriteNativeEntityOperationsWrapper.DeleteCache)
             {
-                try
-                {
-                    world.OnEntityChange(entity, id, false);
-#if UNITY_EDITOR
-                    world.RaiseEntityChangeEvent(entity);
+                world.OnEntityChangeInternal(entity, id, false);
+#if DEBUG || LEOECSLITE_WORLD_EVENTS
+                world.RaiseEntityChangeEvent(entity);
 #endif
-                }
-                catch
-                {
-                    // ignored
-                }
             }
         }
 
@@ -180,14 +166,7 @@ namespace OdinGames.EcsLite.Native.Context
             var world = systems.GetWorld();
             foreach (int entity in nativeReadWriteOperationsWrapper.EntitiesToRemove)
             {
-                try
-                {
-                    world.DelEntity(entity);
-                }
-                catch
-                {
-                    // ignored
-                }
+                world.DelEntity(entity);
             }
         }
 
