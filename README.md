@@ -93,11 +93,6 @@ And that's all! All you need is to operate over entity values.
 You also can use this mechanism outside ecs system, for example in some kind of service, in this sutuation you need to call `ApplyOperations(EcsSystems systems)` on `NativeOperationsService` by yourself
 
 ## FAQ
-
-## Installation
-
-For now to use this extension you need to clone fork of the [ecslite](https://github.com/odingamesdev/ecslite) framework. In future we have plans to merge our project with main Leopotam repo.
-
 ## Know problems
 1. No AutoReset
 2. No internal arrays resizing. Be careful or specify pool arrays size in EcsWorld.Config
