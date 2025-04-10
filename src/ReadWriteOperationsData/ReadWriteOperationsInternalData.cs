@@ -14,7 +14,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData
         public NativeWrappedData<int> SparseItems;
         public NativeWrappedData<T> DenseItems;
         public NativeWrappedData<int> RecycledItems;
-        public NativeWrappedData<EcsWorld.EntityData> Entities;
+        public NativeWrappedData<EntityData> Entities;
 
         public UnsafeExtensions.SharedIndex RecycledItemsCount;
         public UnsafeExtensions.SharedIndex DenseItemsCount;
@@ -32,7 +32,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData
         public void Init(NativeWrappedData<int> sparseItems,
                          NativeWrappedData<T> denseItems,
                          NativeWrappedData<int> recycledItems,
-                         NativeWrappedData<EcsWorld.EntityData> entities,
+                         NativeWrappedData<EntityData> entities,
                          ref int recycledItemsCount,
                          ref int denseItemsCount,
                          int id)
