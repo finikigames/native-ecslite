@@ -12,7 +12,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations.ReadWriteOperationsData.Base
         void Init(NativeWrappedData<int> sparseItems,
                   NativeWrappedData<T> denseItems, 
                   NativeWrappedData<int> recycledItems, 
-                  NativeWrappedData<EcsWorld.EntityData> entities, 
+                  NativeWrappedData<EntityData> entities, 
                   ref int recycledItemsCount, 
                   ref int denseItemsCount,
                   int id);
