@@ -19,6 +19,7 @@ namespace OdinGames.EcsLite.Native.NativeOperations
 
         public bool Has(int entity)
         {
+            if (_sparseItems.Array.Length - 1 < entity || entity < 0) return false;
             return _sparseItems.Array[entity] > 0;
         }
 
