@@ -140,7 +140,7 @@ namespace OdinGames.EcsLite.Native.Context
             var id = readWriteNativeEntityOperationsWrapper.ID;
             foreach (var entity in readWriteNativeEntityOperationsWrapper.AddCache)
             {
-                world.OnEntityChangeInternal(entity, id, true);
+                world.OnEntityChange(entity, id, true);
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
                 world.RaiseEntityChangeEvent(entity);
 #endif
@@ -154,7 +154,7 @@ namespace OdinGames.EcsLite.Native.Context
             var id = readWriteNativeEntityOperationsWrapper.ID;
             foreach (var entity in readWriteNativeEntityOperationsWrapper.DeleteCache)
             {
-                world.OnEntityChangeInternal(entity, id, false);
+                world.OnEntityChange(entity, id, false);
 #if DEBUG || LEOECSLITE_WORLD_EVENTS
                 world.RaiseEntityChangeEvent(entity);
 #endif
